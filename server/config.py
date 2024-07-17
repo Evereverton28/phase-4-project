@@ -11,7 +11,7 @@ from sqlalchemy import MetaData
 # Local imports
 
 # Instantiate app, set attributes
-app = Flask(__name__)
+app = Flask(_name_)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
@@ -27,5 +27,5 @@ db.init_app(app)
 # Instantiate REST API
 api = Api(app)
 
-# Instantiate CORS
+# Instantiate CORS
 CORS(app)
