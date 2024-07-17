@@ -59,6 +59,17 @@ def logout():
 def protected():
     return jsonify({'message': 'This is a protected resource'})
 
+@app.route('/doctors', methods=['GET'])
+def get_doctors():
+    doctors = [
+        { 'id': 1, 'name': 'Dr. Faith Nyaboke', 'specialty': 'Cardiology', 'phone': '+254 123 456 789', 'email': 'faith.nyaboke@gmail.com', 'imageUrl': 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8RG9jdG9yfGVufDB8fDB8fHww' },
+        { 'id': 2, 'name': 'Dr. Jane Kinyua', 'specialty': 'Pediatrics', 'phone': '+254 234 567 890', 'email': 'jane.kinyua@example.com', 'imageUrl': 'https://images.unsplash.com/photo-1584467735815-f778f274e296?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8RG9jdG9yfGVufDB8fDB8fHww' },
+        { 'id': 3, 'name': 'Dr. Michael Kimemia', 'specialty': 'Orthopedics', 'phone': '+254 345 678 901', 'email': 'michael.kimemia@icloud.com', 'imageUrl': 'https://images.unsplash.com/photo-1609743522471-83c84ce23e32?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fERvY3RvcnxlbnwwfHwwfHx8MA%3D%3D' },
+        { 'id': 4, 'name': 'Dr. Gary Kimani', 'specialty': 'Dermatology', 'phone': '+254 456 789 012', 'email': 'gary.kimani@example.com', 'imageUrl': 'https://media.istockphoto.com/id/1486172842/photo/portrait-of-male-nurse-in-his-office.webp?b=1&s=170667a&w=0&k=20&c=X4TGvYkgE0Hqqdwv13z47msgfNAFLH9udGXPzWHlT9A=' },
+        { 'id': 5, 'name': 'Dr. David', 'specialty': 'Neurology', 'phone': '+254 567 890 123', 'email': 'david.lee@example.com', 'imageUrl': 'https://images.unsplash.com/photo-1579684453401-966b11832744?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fERvY3RvcnxlbnwwfHwwfHx8MA%3D%3D' },
+    ]
+    return jsonify(doctors)
+
 # List of Symptoms
 @app.route('/symptoms', methods=['GET'])
 def list_symptoms():
@@ -80,5 +91,117 @@ def list_users():
     users_list = [{'id': user.id, 'username': user.username} for user in users]
     return jsonify(users_list)
 
+# Update User
+@app.route('/users/<int:id>', methods=['PUT'])
+def update_user(id):
+    user = User.query.get(id)
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    data = request.json
+    if 'username' in data:
+        user.username = data['username']
+    if 'password' in data:
+        user.set_password(data['password'])
+
+    db.session.commit()
+    return jsonify({'message': 'User updated successfully'})
+
+# Delete User
+@app.route('/users/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    user = User.query.get(id)
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': 'User deleted successfully'})
+
+# Update Doctor
+@app.route('/doctors/<int:id>', methods=['PUT'])
+def update_doctor(id):
+    doctor = Doctor.query.get(id)
+    if not doctor:
+        return jsonify({'message': 'Doctor not found'}), 404
+
+    data = request.json
+    if 'name' in data:
+        doctor.name = data['name']
+    if 'specialty' in data:
+        doctor.specialty = data['specialty']
+
+    db.session.commit()
+    return jsonify({'message': 'Doctor updated successfully'})
+
+# Delete Doctor
+@app.route('/doctors/<int:id>', methods=['DELETE'])
+def delete_doctor(id):
+    doctor = Doctor.query.get(id)
+    if not doctor:
+        return jsonify({'message': 'Doctor not found'}), 404
+
+    db.session.delete(doctor)
+    db.session.commit()
+    return jsonify({'message': 'Doctor deleted successfully'})
+
+# Update Patient
+@app.route('/patients/<int:id>', methods=['PUT'])
+def update_patient(id):
+    patient = Patient.query.get(id)
+    if not patient:
+        return jsonify({'message': 'Patient not found'}), 404
+
+    data = request.json
+    if 'name' in data:
+        patient.name = data['name']
+    if 'age' in data:
+        patient.age = data['age']
+    if 'doctor_id' in data:
+        patient.doctor_id = data['doctor_id']
+
+    db.session.commit()
+    return jsonify({'message': 'Patient updated successfully'})
+
+# Delete Patient
+@app.route('/patients/<int:id>', methods=['DELETE'])
+def delete_patient(id):
+    patient = Patient.query.get(id)
+    if not patient:
+        return jsonify({'message': 'Patient not found'}), 404
+
+    db.session.delete(patient)
+    db.session.commit()
+    return jsonify({'message': 'Patient deleted successfully'})
+
+# Update Symptom
+@app.route('/symptoms/<int:id>', methods=['PUT'])
+def update_symptom(id):
+    symptom = Symptom.query.get(id)
+    if not symptom:
+        return jsonify({'message': 'Symptom not found'}), 404
+
+    data = request.json
+    if 'name' in data:
+        symptom.name = data['name']
+    if 'description' in data:
+        symptom.description = data['description']
+
+    db.session.commit()
+    return jsonify({'message': 'Symptom updated successfully'})
+
+# Delete Symptom
+@app.route('/symptoms/<int:id>', methods=['DELETE'])
+def delete_symptom(id):
+    symptom = Symptom.query.get(id)
+    if not symptom:
+        return jsonify({'message': 'Symptom not found'}), 404
+
+    db.session.delete(symptom)
+    db.session.commit()
+    return jsonify({'message': 'Symptom deleted successfully'})
+
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
