@@ -1,55 +1,20 @@
-from flask import Flask, request, jsonify, redirect, url_for
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy.orm import validates
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_cors import CORS
+from models import db, User, Doctor, Patient, Symptom, patient_symptom  # Import models
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../database/hospital.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'your_secret_key'  # Required for session management
 
-db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)  # Initialize Flask-Migrate
+CORS(app)  # Enable CORS
 
 login_manager = LoginManager(app)
-
-# ORM Models
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-
-    @validates('username')
-    def validate_username(self, key, username):
-        if len(username) < 3:
-            raise ValueError("Username must be at least 3 characters long.")
-        return username
-
-class Doctor(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    specialty = db.Column(db.String(100), nullable=False)
-    patients = db.relationship('Patient', backref='doctor', lazy=True)
-
-class Patient(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
-    symptoms = db.relationship('Symptom', secondary='patient_symptom', backref='patients')
-
-class Symptom(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-
-# Association table for patient symptoms
-patient_symptom = db.Table('patient_symptom',
-                           db.Column('patient_id', db.Integer, db.ForeignKey('patient.id')),
-                           db.Column('symptom_id', db.Integer, db.ForeignKey('symptom.id')),
-                           db.Column('diagnosis', db.String(100))
-                           )
 
 # Login Manager setup
 @login_manager.user_loader
@@ -63,7 +28,7 @@ def login():
     password = request.json.get('password')
     
     user = User.query.filter_by(username=username).first()
-    if user and user.password == password:
+    if user and user.check_password(password):
         login_user(user)
         return jsonify({'message': 'Login successful'})
     else:
@@ -77,7 +42,8 @@ def signup():
     if User.query.filter_by(username=username).first():
         return jsonify({'message': 'Username already exists'}), 400
     
-    new_user = User(username=username, password=password)
+    new_user = User(username=username)
+    new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'User created successfully'}), 201
