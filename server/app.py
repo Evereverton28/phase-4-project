@@ -111,6 +111,18 @@ def delete_user(id):
     db.session.commit()
     return jsonify({'message': 'User deleted successfully'})
 
+@app.route('/doctors', methods=['POST'])
+def create_doctor():
+    data = request.json
+    name = data.get('name')
+    specialty = data.get('specialty')
+
+    new_doctor = Doctor(name=name, specialty=specialty)
+    db.session.add(new_doctor)
+    db.session.commit()
+
+    return jsonify({'message': 'Doctor added successfully'}), 201
+
 # Update Doctor
 @app.route('/doctors/<int:id>', methods=['PUT'])
 def update_doctor(id):
@@ -137,6 +149,20 @@ def delete_doctor(id):
     db.session.delete(doctor)
     db.session.commit()
     return jsonify({'message': 'Doctor deleted successfully'})
+
+@app.route('/patients', methods=['POST'])
+def create_patient():
+    data = request.json
+    name = data.get('name')
+    age = data.get('age')
+    doctor_id = data.get('doctor_id')
+
+    new_patient = Patient(name=name, age=age, doctor_id=doctor_id)
+    db.session.add(new_patient)
+    db.session.commit()
+
+    return jsonify({'message': 'Patient added successfully'}), 201
+
 
 # Update Patient
 @app.route('/patients/<int:id>', methods=['PUT'])
