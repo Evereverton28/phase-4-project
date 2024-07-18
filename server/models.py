@@ -28,6 +28,7 @@ class Doctor(db.Model):
     name = db.Column(db.String(150), nullable=False)
     specialty = db.Column(db.String(150), nullable=False)
     patients = db.relationship('Patient', backref='doctor', lazy=True)
+    appointments = db.relationship('Appointment', backref='doctor', lazy=True)
 
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,6 +36,7 @@ class Patient(db.Model):
     age = db.Column(db.Integer, nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
     symptoms = db.relationship('Symptom', secondary='patient_symptom', backref='patients')
+    appointments = db.relationship('Appointment', backref='patient', lazy=True)
 
 class Symptom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,6 +49,14 @@ patient_symptom = db.Table('patient_symptom',
     db.Column('symptom_id', db.Integer, db.ForeignKey('symptom.id'), primary_key=True),
     db.Column('diagnosis', db.String(100))
 )
+
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    date = db.Column(db.String(100), nullable=False)
+    time = db.Column(db.String(100), nullable=False)
+    reason = db.Column(db.String(200), nullable=False)
 
 # CRUD Methods
 def create_user(username, password):
@@ -78,6 +88,12 @@ def add_symptom_to_patient(patient_id, symptom_id, diagnosis):
     stmt = patient_symptom.insert().values(patient_id=patient_id, symptom_id=symptom_id, diagnosis=diagnosis)
     db.session.execute(stmt)
     db.session.commit()
+
+def create_appointment(patient_id, doctor_id, date, time, reason):
+    appointment = Appointment(patient_id=patient_id, doctor_id=doctor_id, date=date, time=time, reason=reason)
+    db.session.add(appointment)
+    db.session.commit()
+    return appointment
 
 def update_user(user_id, username=None, password=None):
     user = User.query.get(user_id)
@@ -125,6 +141,23 @@ def update_symptom(symptom_id, name=None, description=None):
     db.session.commit()
     return symptom
 
+def update_appointment(appointment_id, patient_id=None, doctor_id=None, date=None, time=None, reason=None):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        return None
+    if patient_id:
+        appointment.patient_id = patient_id
+    if doctor_id:
+        appointment.doctor_id = doctor_id
+    if date:
+        appointment.date = date
+    if time:
+        appointment.time = time
+    if reason:
+        appointment.reason = reason
+    db.session.commit()
+    return appointment
+
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user:
@@ -151,4 +184,11 @@ def delete_symptom(symptom_id):
     if symptom:
         db.session.delete(symptom)
         db.session.commit()
-    return symptom
+    return symptom
+
+def delete_appointment(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if appointment:
+        db.session.delete(appointment)
+        db.session.commit()
+    return appointment
